@@ -279,7 +279,7 @@ end
 
 minetest.register_chatcommand("sq", {
 	description = "Create and join a squad. For help, use /sq help",
-	privs = {shout=true},
+	privs = {moderator=true},
 	func = function(name, param)
 	
 		local paramlist = {}
