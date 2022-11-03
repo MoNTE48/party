@@ -3,7 +3,7 @@ ids_bg = {}
 ids_hp = {}
 ids_hptag = {}
 ids_tag = {}
---local mod_storage = minetest.get_mod_storage()
+local mod_storage = minetest.get_mod_storage()
 
 squad.send_notice_all = function(name, message)
 	for _,players in ipairs(minetest.get_connected_players()) do
@@ -25,7 +25,7 @@ squad.check_tag = function(name, tag)
 		local playernames = players:get_player_name()
 		local squadnames = mod_storage:get_string(playernames.."_squad_leader")
 		local cparty = mod_storage:get_string(name.."_party")
-		
+
 		if cparty == mod_storage:get_string(playernames.."_party") then
 			if squadnames ~= "" and squadnames == tag then
 				return true
@@ -41,7 +41,7 @@ squad.member_amt = function(name, squad)
 	if squad == "" then
 		return
 	end
-	
+
 	local amt = 0
 	for _,players in ipairs(minetest.get_connected_players()) do
 		local playernames = players:get_player_name()
@@ -49,7 +49,7 @@ squad.member_amt = function(name, squad)
 			amt = amt + 1
 		end
 	end
-	
+
 	return amt
 end
 
@@ -99,7 +99,7 @@ squad.load_hud_self = function(name)
 			offset = { x = 0, y = -8 },
 		})
 	end
-	
+
 	minetest.after(0.1, function()
 		-- adds self hud
 		player:hud_change(ids_bg[name.."_"..cparty.."_bg_"..csquad.."_"..csquad_no], "number", 20)
@@ -160,12 +160,12 @@ squad.join = function(name, tag)
 	-- add the storage values to idenitify player
 	mod_storage:set_string(name.."_squad", tag)
 	mod_storage:set_string(name.."_squad_no", squad_amt + 1)
-	
+
 	-- add the huds
 	squad.load_hud_self(name)
 	squad.add_hud(name)
 	squad.update_hud_self(name)
-	
+
 	squad.send_notice_all(name, name.." has joined the ["..tag.."] squad")
 	local tcolour = mod_storage:get_string(cparty.."_colour")
 	if tcolour == "" then
@@ -180,7 +180,7 @@ squad.replace_hud = function(name, oldno, newno)
 	local cparty = mod_storage:get_string(name.."_party")
 	local csquad = mod_storage:get_string(name.."_squad")
 	mod_storage:set_string(name.."_squad_no", newno)
-	
+
 	for _,players in ipairs(minetest.get_connected_players()) do
 		local playernames = players:get_player_name()
 		if cparty == mod_storage:get_string(playernames.."_party") and csquad == mod_storage:get_string(playernames.."_squad") then
@@ -190,7 +190,7 @@ squad.replace_hud = function(name, oldno, newno)
 				players:hud_change(ids_hptag[playernames.."_"..cparty.."_hptag_"..csquad.."_"..oldno], "text", "")
 				players:hud_change(ids_tag[playernames.."_"..cparty.."_tag_"..csquad.."_"..oldno], "text", "")
 			end)
-		
+
 			minetest.after(0.3, function()
 				players:hud_change(ids_bg[playernames.."_"..cparty.."_bg_"..csquad.."_"..newno], "number", 20)
 				players:hud_change(ids_hp[playernames.."_"..cparty.."_hp_"..csquad.."_"..newno], "number", player:get_hp())
@@ -208,11 +208,11 @@ squad.leave = function(name, tag)
 	local csquad = mod_storage:get_string(name.."_squad")
 	local csquad_no = tonumber(mod_storage:get_string(name.."_squad_no"))
 	player:set_attribute("partychat", "party")
-	
+
 	if csquad == "" then
 		return
 	end
-	
+
 	-- remove all huds for player-that-left
 	for i = 1,7 do
 		player:hud_remove(ids_bg[name.."_"..cparty.."_bg_"..csquad.."_"..i])
@@ -220,20 +220,20 @@ squad.leave = function(name, tag)
 		player:hud_remove(ids_hptag[name.."_"..cparty.."_hptag_"..csquad.."_"..i])
 		player:hud_remove(ids_tag[name.."_"..cparty.."_tag_"..csquad.."_"..i])
 	end
-	
+
 	mod_storage:set_string(name.."_squad", nil)
 	mod_storage:set_string(name.."_squad_leader", nil)
 	mod_storage:set_string(name.."_squad_lock", nil)
 	mod_storage:set_string(name.."_squad_no", nil)
-	
+
 	local tcolour = mod_storage:get_string(cparty.."_colour")
 	if tcolour == "" then
 		tcolour = "lightgrey"
 	end
 	player:set_nametag_attributes({text = minetest.colorize(tcolour, "["..cparty_l.."]").." "..name})
-	
+
 	local squad_amt = squad.member_amt(name, csquad)
-	
+
 	for _,players in ipairs(minetest.get_connected_players()) do
 		local playernames = players:get_player_name()
 		if cparty == mod_storage:get_string(playernames.."_party") and csquad == mod_storage:get_string(playernames.."_squad") and name ~= playernames then
@@ -247,7 +247,7 @@ squad.leave = function(name, tag)
 			end)
 		end
 	end
-	
+
 	for _,players in ipairs(minetest.get_connected_players()) do
 		local playernames = players:get_player_name()
 		if cparty == mod_storage:get_string(playernames.."_party") and csquad == mod_storage:get_string(playernames.."_squad") and name ~= playernames then
@@ -281,14 +281,14 @@ minetest.register_chatcommand("sq", {
 	description = "Create and join a squad. For help, use /sq help",
 	privs = {moderator=true},
 	func = function(name, param)
-	
+
 		local paramlist = {}
 		local index = 1
 		for param_split in param:gmatch("%S+") do
 			paramlist[index] = param_split
 			index = index + 1
 		end
-		
+
 		local param1 = paramlist[1]
 		local param2 = paramlist[2]
 		local player = minetest.get_player_by_name(name)
@@ -297,32 +297,32 @@ minetest.register_chatcommand("sq", {
 		local csquad = mod_storage:get_string(name.."_squad")
 		local csquad_l = mod_storage:get_string(name.."_squad_leader")
 		local player_list = minetest.deserialize(mod_storage:get_string("playerlist"))
-		
+
 		if party.check(name, 1) == true then
 			return
 		end
-		
+
 		if param1 == "help" then
 			squad.send_notice(name, "NOTE: Unlike parties, squads do not last permanently, you automatically leave if you leave the game and if the squad leader does so, the squad is automatically disbanded.")
 			squad.send_notice(name, minetest.colorize("cyan", "/sq join <squadname>").. " --- Join a squad.")
 			squad.send_notice(name, minetest.colorize("cyan", "/sq leave").. " --- Leave your squad.")
 			squad.send_notice(name, minetest.colorize("cyan", "/sq invite <yes/no>").. " --- Accept / reject an invite.")
-			
+
 			squad.send_notice(name, " ===== PARTY OFFICERS/ PARTY LEADER COMMANDS: ===== ")
 			squad.send_notice(name, minetest.colorize("cyan", "/sq create <squadname>").. " --- Create a squad.")
-			
+
 			squad.send_notice(name, " ===== SQUAD LEADER COMMANDS: ===== ")
 			squad.send_notice(name, minetest.colorize("cyan", "/sq disband").. " --- Disband your squad.")
 			--squad.send_notice(name, minetest.colorize("cyan", "/sq leader <playername>").. " --- Give your squad leader position to someone else.")
 			squad.send_notice(name, minetest.colorize("cyan", "/sq lock <open/private>").. " --- Change joining method for your squad.")
 			squad.send_notice(name, minetest.colorize("cyan", "/sq invite <playername>").. " --- Invite a player to your squad.")
-			
+
 			squad.send_notice(name, " ===== PARTY LEADER / ADMIN COMMANDS: ===== ")
 			squad.send_notice(name, minetest.colorize("cyan", "/sq disband <squadname>").. " --- Disband your squad in your party.")
-			
+
 			mod_storage:set_string(name.."_squad", param2)
 			mod_storage:set_string(name.."_squad_leader", param2)
-		
+
 		elseif param1 == "create" and param2 ~= nil then
 			-- check if player is an officer or above.
 			if party.check(name, 2) == true then
@@ -338,19 +338,19 @@ minetest.register_chatcommand("sq", {
 				squad.send_notice(name, "Squad name selected already exists. Please choose another one.")
 				return
 			end
-			
+
 			-- if player not in another squad already
 			if csquad == "" then
 				local cparty_l = mod_storage:get_string(cparty.."_leader")
 				party.send_notice_all(name, name.." created the ["..param2.."] squad in "..cparty.."'s party ["..cparty_l.."].")
-				
+
 				mod_storage:set_string(name.."_squad_leader", param2)
 				mod_storage:set_string(name.."_squad_lock", PARTY_SQUAD_JOIN_MODE)
 				squad.join(name, param2)
 
 			else squad.send_notice(name, "You are already in ["..csquad.."] squad.")
 			end
-			
+
 		elseif param1 == "disband" then
 			local cparty_l = mod_storage:get_string(cparty.."_leader")
 			if csquad_l == csquad and param2 == nil then
@@ -358,10 +358,10 @@ minetest.register_chatcommand("sq", {
 					squad.send_notice(name, "You are not in a squad!")
 					return
 				end
-				
+
 				squad.send_notice_all(name, "Squad ["..csquad.."] has been disbanded by the squad leader "..name)
 				party.send_notice_all(name, "Squad ["..csquad.."] has been disbanded by the squad leader "..name)
-				
+
 				-- remove all online squad members
 				for _,players in ipairs(minetest.get_connected_players()) do
 					local names = players:get_player_name()
@@ -374,10 +374,10 @@ minetest.register_chatcommand("sq", {
 				if party.check(name, 3) == true then
 					return
 				end
-				
+
 				if squad.check_tag(name, param2) == true and param2 ~= "" then
 					party.send_notice_all(name, "Squad ["..param2.."] has been disbanded by the party leader "..name)
-					
+
 					for _,players in ipairs(minetest.get_connected_players()) do
 						local names = players:get_player_name()
 						if mod_storage:get_string(names.."_party") == cparty and mod_storage:get_string(names.."_squad") == param2 then
@@ -388,14 +388,14 @@ minetest.register_chatcommand("sq", {
 				end
 			else squad.send_notice(name, "You are not a squad leader nor the party leader!")
 			end
-			
-		
+
+
 		elseif param1 == "lock" and param2 ~= nil then
 			if csquad_l ~= csquad then
 				squad.send_notice(name, "You are not a squad leader.")
 				return
 			end
-				
+
 			if param2 == "open" then
 				mod_storage:set_string(name.."_squad_lock", "")
 				squad.send_notice_all(name, "[Open mode] Public joining is enabled for "..csquad.." squad")
@@ -403,21 +403,21 @@ minetest.register_chatcommand("sq", {
 				mod_storage:set_string(name.."_squad_lock", "private")
 				squad.send_notice_all(name, "[Private mode] Public joining is disabled for "..csquad.." squad")
 			end
-		
+
 		elseif param1 == "kick" and param2 ~= nil then
 			--check if player is squad leader
 			if csquad_l ~= csquad then
 				squad.send_notice(name, "You are not a squad leader.")
 				return
 			end
-			
+
 			if minetest.player_exists(param2) then
 				--check if player is online
 				if minetest.get_player_by_name(param2) == nil then
 					squad.send_notice(name, "Player "..param2.." is not online now!")
 					return
 				end
-				
+
 				if mod_storage:get_string(param2.."_party") == cparty and mod_storage:get_string(param2.."_squad") == csquad then
 					squad.send_notice_all(name, param2.." was kicked from the ["..csquad.."] squad by "..name)
 					squad.leave(param2)
@@ -425,18 +425,18 @@ minetest.register_chatcommand("sq", {
 				end
 			else squad.send_notice(name, "Player "..param2.." does not exist!")
 			end
-		
+
 		elseif param1 == "join" and param2 ~= nil then
 			if squad.check_tag(name, param2) ~= true then
 				squad.send_notice(name, "Squad name does not exist in your party!")
 				return
 			end
-			
+
 			if csquad ~= "" then
 				squad.send_notice(name, "You are already in squad ["..csquad.."].")
 				return
 			end
-			
+
 			for _,players in ipairs(minetest.get_connected_players()) do
 				local names = players:get_player_name()
 				-- if same party and squad name matches param2
@@ -446,7 +446,7 @@ minetest.register_chatcommand("sq", {
 					end
 				end
 			end
-			
+
 			if mod_storage:get_string(squadleadername.."_squad_lock") == "private" then
 				squad.send_notice(name, "Squad is private!")
 			else
@@ -455,28 +455,28 @@ minetest.register_chatcommand("sq", {
 				else squad.send_notice(name, "Squad ["..param2.."] is full!")
 				end
 			end
-		
+
 		elseif param1 == "leave" then
 			if csquad == "" then
 				squad.send_notice(name, "You are not in a squad!")
 				return
 			end
-			
+
 			if csquad_l == csquad then
 				squad.send_notice(name, "You cannot leave because you are the squad leader! Use '/sq disband' instead.")
 				return
 			end
-			
+
 			squad.send_notice_all(name, name.." has left the ["..csquad.."] squad")
 			squad.leave(name)
-		
+
 		elseif param1 == "invite" and param2 ~= nil then
 			if (param2 == "yes" or param2 == "no") and csquad == "" then
 				if player:get_attribute("squadinvite") == nil then
 					squad.send_notice(name, "You have not received a squad invite!")
 					return
 				end
-				
+
 				local sender = player:get_attribute("squadinvite")
 				local csquad_i = mod_storage:get_string(sender.."_squad")
 				if param2 == "yes" then
@@ -493,13 +493,13 @@ minetest.register_chatcommand("sq", {
 					squad.send_notice(sender, name.. " has rejected your invitation to join your squad ["..csquad_i.."]")
 					player:set_attribute("squadinvite", nil)
 				end
-				
+
 			elseif csquad ~= "" then
 				if csquad_l ~= csquad then
 					squad.send_notice(name, "You are not a squad leader.")
 					return
 				end
-				
+
 				if minetest.player_exists(param2) then
 					-- check if player is online
 					if minetest.get_player_by_name(param2) == nil then
@@ -525,10 +525,10 @@ minetest.register_chatcommand("sq", {
 				end
 			else squad.send_notice(name, "You are not in a squad!")
 			end
-			
+
 		else squad.send_notice(name, "ERROR: Command is invalid! For help, use the command '/sq help'.")
 		end
-	end,	
+	end,
 })
 
 
@@ -537,24 +537,24 @@ minetest.register_on_player_hpchange(function(player, hp_change)
 	local cparty = mod_storage:get_string(name.."_party")
 	local csquad = mod_storage:get_string(name.."_squad")
 	local csquad_no = tonumber(mod_storage:get_string(name.."_squad_no"))
-	
+
 	if csquad == "" then
 		return
 	end
-	
+
 	-- update self
 	--minetest.after(0.01, function()
 		if player:get_hp() + hp_change < 20 then
 			player:hud_change(ids_hp[name.."_"..cparty.."_hp_"..csquad.."_"..csquad_no], "number", player:get_hp() + hp_change)
-		
+
 			player:hud_change(ids_hptag[name.."_"..cparty.."_hptag_"..csquad.."_"..csquad_no], "text", "HP: "..player:get_hp() + hp_change.." / 20")
 		elseif player:get_hp() + hp_change >= 20 then
 			player:hud_change(ids_hp[name.."_"..cparty.."_hp_"..csquad.."_"..csquad_no], "number", 20)
-		
+
 			player:hud_change(ids_hptag[name.."_"..cparty.."_hptag_"..csquad.."_"..csquad_no], "text", "HP: 20 / 20")
 		end
 	--end)
-	
+
 	-- update squad displays of self
 	for _,players in ipairs(minetest.get_connected_players()) do
 		local playernames = players:get_player_name()
@@ -562,11 +562,11 @@ minetest.register_on_player_hpchange(function(player, hp_change)
 			minetest.after(0.02, function()
 				if player:get_hp() < 20 then
 					players:hud_change(ids_hp[playernames.."_"..cparty.."_hp_"..csquad.."_"..csquad_no], "number", player:get_hp())
-		
+
 					players:hud_change(ids_hptag[playernames.."_"..cparty.."_hptag_"..csquad.."_"..csquad_no], "text", "HP: "..player:get_hp().." / 20")
 				elseif player:get_hp() >= 20 then
 					players:hud_change(ids_hp[playernames.."_"..cparty.."_hp_"..csquad.."_"..csquad_no], "number", 20)
-		
+
 					players:hud_change(ids_hptag[playernames.."_"..cparty.."_hptag_"..csquad.."_"..csquad_no], "text", "HP: 20 / 20")
 				end
 			end)
@@ -588,7 +588,7 @@ minetest.register_on_leaveplayer(function(player)
 	local csquad = mod_storage:get_string(name.."_squad")
 	local cparty = mod_storage:get_string(name.."_party")
 	player:set_attribute("squadinvite", nil)
-	
+
 	if csquad == "" then
 		return
 	end

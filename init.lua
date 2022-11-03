@@ -5,7 +5,7 @@ mod_storage = minetest.get_mod_storage()
 -- =======================
 PARTY_TAG_COLOUR = "lightgrey"	-- default colour of party tags
 
-PARTY_PARTY_NAME_LENGTH = 8		-- max length for party name/ tag
+PARTY_PARTY_NAME_LENGTH = 16		-- max length for party name/ tag
 PARTY_PARTY_JOIN_MODE = ""		-- default join mode for parties <<< empty(open)/ active / request / private >>>
 
 PARTY_SQUAD_NAME_LENGTH = 8 	-- max length for squad name/ tag
@@ -183,7 +183,7 @@ end
 
 minetest.register_chatcommand("p", {
 	description = "Create and join a party. For help, use /p help",
-	privs = {moderator=true},
+	privs = {shout=true},
 	func = function(name, param)
 
 		local paramlist = {}
@@ -233,9 +233,11 @@ minetest.register_chatcommand("p", {
 			party.send_notice(name, minetest.colorize("cyan", "/p title <playername> <title>").." --- Adds a title to a player in party chat.")
 
 			party.send_notice(name, " ===== ADMIN COMMANDS: ===== ")
-			party.send_notice(name, minetest.colorize("cyan", "/p forcedisband <partyname>").." --- Forcefully disband a party (requires 'ban' privilege).")
-			party.send_notice(name, minetest.colorize("cyan", "/p forcejoin <partyname>").." --- Forcefully let yourself in a party regardless of its lock mode (requires 'ban' privilege).")
-			party.send_notice(name, minetest.colorize("cyan", "/p forcekick <playername>").." --- Forcefully kick a player from a party (requires 'kick' privilege).")
+			party.send_notice(name, minetest.colorize("cyan", "/p forcedisband <partyname>").." --- Forcefully disband a party (requires 'moderator' privilege).")
+			party.send_notice(name, minetest.colorize("cyan", "/p forcejoin <partyname>").." --- Forcefully let yourself in a party regardless of its lock mode (requires 'moderator' privilege).")
+			party.send_notice(name, minetest.colorize("cyan", "/p forcekick <playername>").." --- Forcefully kick a player from a party (requires 'moderator' privilege).")
+			party.send_notice(name, minetest.colorize("cyan", "/p leader <playername>").." --- Promote player to a leader (requires 'moderator' privilege).")
+
 
 			-- TODO
 			-- formspecs equivalents
@@ -346,6 +348,11 @@ minetest.register_chatcommand("p", {
 			end
 
 		elseif param1 == "create" and param2 ~= nil then
+			if not minetest.check_player_privs(name, {moderator=true}) then
+				party.send_notice(name, "You are not an admin!")
+				return
+			end
+
 			if string.len(param2) > PARTY_PARTY_NAME_LENGTH then
 				party.send_notice(name, "Nametag is too long! "..PARTY_PARTY_NAME_LENGTH.." is the maximum amount of characters")
 				return
@@ -494,6 +501,11 @@ minetest.register_chatcommand("p", {
 		-- =======================
 		-- /p disband
 		elseif param1 == "disband" then
+			if not minetest.check_player_privs(name, {moderator=true}) then
+				party.send_notice(name, "You are not an admin!")
+				return
+			end
+
 			if party.check(name, 3) == true then
 				return
 			end
@@ -532,6 +544,11 @@ minetest.register_chatcommand("p", {
 			end
 
 		elseif param1 == "rename" and param2 ~= nil then
+			if not minetest.check_player_privs(name, {moderator=true}) then
+				party.send_notice(name, "You are not an admin!")
+				return
+			end
+
 			if party.check(name, 3) == true then
 				return
 			end
@@ -566,6 +583,11 @@ minetest.register_chatcommand("p", {
 			end
 
 		elseif param1 == "colour" and param2 ~= nil then
+			if not minetest.check_player_privs(name, {moderator=true}) then
+				party.send_notice(name, "You are not an admin!")
+				return
+			end
+
 			if party.check(name, 3) == true then
 				return
 			end
@@ -653,6 +675,36 @@ minetest.register_chatcommand("p", {
 
 			else party.send_notice(name, "Player "..param2.." does not exist! Case sensitive.")
 			end
+
+
+      -- /p leader
+		elseif param1 == "leader" and param2 ~= nil then
+			if not minetest.check_player_privs(name, {moderator=true}) then
+				party.send_notice(name, "You are not an admin!")
+				return
+			end
+
+			local cparty_l = mod_storage:get_string(name.."_leader")
+			if minetest.player_exists(param2) then
+
+				local target_party = mod_storage:get_string(param2.."_party")
+
+				-- if player is not in same party
+				if target_party ~= cparty then
+					party.send_notice(name, "Player "..param2.." does not exist or is not in your party! Case sensitive.")
+					return
+				-- if player is in same party then promote/demote accordingly
+				elseif target_party == cparty then
+					local target_status = mod_storage:get_string(param2.."_leader")
+					if target_status == "" then
+						mod_storage:set_string(param2.."_leader", "true")
+						party.send_notice_all(name, param2.." has been promoted to a leader!")
+					end
+				end
+
+			else party.send_notice(name, "Player "..param2.." does not exist! Case sensitive.")
+			end
+
 
 		elseif param1 == "title" and param2 ~= nil and param3 ~= nil then
 			if party.check(name, 3) == true then
@@ -826,7 +878,7 @@ minetest.register_chatcommand("p", {
 		-- ==== ADMIN COMMANDS ===
 		-- =======================
 		elseif param1 == "forcedisband" and param2 ~= nil then
-			if not minetest.check_player_privs(name, {ban=true}) then
+			if not minetest.check_player_privs(name, {moderator=true}) then
 				party.send_notice(name, "You are not an admin!")
 				return
 			end
@@ -866,7 +918,7 @@ minetest.register_chatcommand("p", {
 			end
 
 		elseif param1 == "forcejoin" and param2 ~= nil then
-			if not minetest.check_player_privs(name, {ban=true}) then
+			if not minetest.check_player_privs(name, {moderator=true}) then
 				party.send_notice(name, "You are not an admin!")
 				return
 			end
@@ -889,7 +941,7 @@ minetest.register_chatcommand("p", {
 			end
 
 		elseif param1 == "forcekick" and param2 ~= nil then
-			if not minetest.check_player_privs(name, {kick=true}) then
+			if not minetest.check_player_privs(name, {moderator=true}) then
 				party.send_notice(name, "You are not a mod!")
 				return
 			end
