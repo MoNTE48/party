@@ -1,17 +1,19 @@
-party = {}
-mod_storage = minetest.get_mod_storage()
+party = {
+	mod_storage = minetest.get_mod_storage()
+}
+local mod_storage = party.mod_storage
 -- =======================
 -- === CUSTOM SETTINGS ===
 -- =======================
-PARTY_TAG_COLOUR = "lightgrey"	-- default colour of party tags
+local PARTY_TAG_COLOUR = "lightgrey"	-- default colour of party tags
 
-PARTY_PARTY_NAME_LENGTH = 16		-- max length for party name/ tag
-PARTY_PARTY_JOIN_MODE = ""		-- default join mode for parties <<< empty(open)/ active / request / private >>>
+local PARTY_PARTY_NAME_LENGTH = 16		-- max length for party name/ tag
+local PARTY_PARTY_JOIN_MODE = ""		-- default join mode for parties <<< empty(open)/ active / request / private >>>
 
-PARTY_SQUAD_NAME_LENGTH = 8 	-- max length for squad name/ tag
-PARTY_SQUAD_JOIN_MODE = ""		-- default join mode for squads <<< empty(open) / private >>>
+party.PARTY_SQUAD_NAME_LENGTH = 8 		-- max length for squad name/ tag
+party.PARTY_SQUAD_JOIN_MODE = ""		-- default join mode for squads <<< empty(open) / private >>>
 
-PARTY_IRC_HIDE = "false"			-- if "true" and irc mod is active, party and squad messages are NOT sent to the irc channel. NOTE if true, comment out these few lines; https://github.com/minetest-mods/irc/blob/master/callback.lua#L22-L35 on the irc mod, else there will be double messages.
+local PARTY_IRC_HIDE = "false"			-- if "true" and irc mod is active, party and squad messages are NOT sent to the irc channel. NOTE if true, comment out these few lines; https://github.com/minetest-mods/irc/blob/master/callback.lua#L22-L35 on the irc mod, else there will be double messages.
 
 -- =======================
 -- ===== PLAYER LIST =====
@@ -177,6 +179,7 @@ party.leave = function(name)
 	mod_storage:set_string(name.."_home", nil)
 	mod_storage:set_string(name.."_colour", nil)
 --	player:set_nametag_attributes({text = name})
+	player_skin.custom_nametag(player, nil, "")
 	player:set_attribute("partychat", "main")
 end
 
@@ -501,11 +504,6 @@ minetest.register_chatcommand("p", {
 		-- =======================
 		-- /p disband
 		elseif param1 == "disband" then
-			if not minetest.check_player_privs(name, {moderator=true}) then
-				party.send_notice(name, "You are not an admin!")
-				return
-			end
-
 			if party.check(name, 3) == true then
 				return
 			end
@@ -679,11 +677,6 @@ minetest.register_chatcommand("p", {
 
       -- /p leader
 		elseif param1 == "leader" and param2 ~= nil then
-			if not minetest.check_player_privs(name, {moderator=true}) then
-				party.send_notice(name, "You are not an admin!")
-				return
-			end
-
 			local cparty_l = mod_storage:get_string(name.."_leader")
 			if minetest.player_exists(param2) then
 

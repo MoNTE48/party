@@ -3,7 +3,10 @@ ids_bg = {}
 ids_hp = {}
 ids_hptag = {}
 ids_tag = {}
-local mod_storage = minetest.get_mod_storage()
+
+local mod_storage = party.mod_storage
+local PARTY_SQUAD_NAME_LENGTH = party.PARTY_SQUAD_NAME_LENGTH
+local PARTY_SQUAD_JOIN_MODE = party.PARTY_SQUAD_JOIN_MODE
 
 squad.send_notice_all = function(name, message)
 	for _,players in ipairs(minetest.get_connected_players()) do
@@ -171,7 +174,7 @@ squad.join = function(name, tag)
 	if tcolour == "" then
 		tcolour = "lightgrey"
 	end
-	player:set_nametag_attributes({text = minetest.colorize(tcolour, "["..cparty_l.."-"..tag.."]").." "..name})
+--	player:set_nametag_attributes({text = minetest.colorize(tcolour, "["..cparty_l.."-"..tag.."]").." "..name})
 	player:set_attribute("partychat", "squad")
 end
 
@@ -230,7 +233,7 @@ squad.leave = function(name, tag)
 	if tcolour == "" then
 		tcolour = "lightgrey"
 	end
-	player:set_nametag_attributes({text = minetest.colorize(tcolour, "["..cparty_l.."]").." "..name})
+--	player:set_nametag_attributes({text = minetest.colorize(tcolour, "["..cparty_l.."]").." "..name})
 
 	local squad_amt = squad.member_amt(name, csquad)
 
@@ -279,7 +282,7 @@ end
 
 minetest.register_chatcommand("sq", {
 	description = "Create and join a squad. For help, use /sq help",
-	privs = {moderator=true},
+	privs = {shout=true},
 	func = function(name, param)
 
 		local paramlist = {}
