@@ -238,8 +238,8 @@ minetest.register_chatcommand("p", {
 			party.send_notice(name, " ===== ADMIN COMMANDS: ===== ")
 			party.send_notice(name, minetest.colorize("cyan", "/p forcedisband <partyname>").." --- Forcefully disband a party (requires 'moderator' privilege).")
 			party.send_notice(name, minetest.colorize("cyan", "/p forcejoin <partyname>").." --- Forcefully let yourself in a party regardless of its lock mode (requires 'moderator' privilege).")
-			party.send_notice(name, minetest.colorize("cyan", "/p forcekick <playername>").." --- Forcefully kick a player from a party (requires 'moderator' privilege).")
-			party.send_notice(name, minetest.colorize("cyan", "/p leader <playername>").." --- Promote player to a leader (requires 'moderator' privilege).")
+			party.send_notice(name, minetest.colorize("cyan", "/p forcekick <playername>").." --- Forcefully kick a player from a party.")
+			party.send_notice(name, minetest.colorize("cyan", "/p leader <playername>").." --- Promote player to a leader.")
 
 
 			-- TODO
@@ -675,8 +675,12 @@ minetest.register_chatcommand("p", {
 			end
 
 
-      -- /p leader
+		-- /p leader
 		elseif param1 == "leader" and param2 ~= nil then
+			if party.check(name, 3) == true then
+				return
+			end
+
 			local cparty_l = mod_storage:get_string(name.."_leader")
 			if minetest.player_exists(param2) then
 
@@ -691,6 +695,7 @@ minetest.register_chatcommand("p", {
 					local target_status = mod_storage:get_string(param2.."_leader")
 					if target_status == "" then
 						mod_storage:set_string(param2.."_leader", "true")
+						mod_storage:set_string(name.."_leader", nil)
 						party.send_notice_all(name, param2.." has been promoted to a leader!")
 					end
 				end
@@ -967,7 +972,7 @@ minetest.register_chatcommand("p", {
 						-- disband squad if so
 						for _,players in ipairs(minetest.get_connected_players()) do
 							local names = players:get_player_name()
-							if mod_storage:get_string(names.."_party") ==  mod_storage:get_string(param2.."_party") and mod_storage:get_string(names.."_squad") == mod_storage:get_string(param2.."_squad") then
+							if mod_storage:get_string(names.."_party") == mod_storage:get_string(param2.."_party") and mod_storage:get_string(names.."_squad") == mod_storage:get_string(param2.."_squad") then
 							squad.leave(names)
 							end
 						end

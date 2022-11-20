@@ -1,8 +1,8 @@
 squad = {}
-ids_bg = {}
-ids_hp = {}
-ids_hptag = {}
-ids_tag = {}
+local ids_bg = {}
+local ids_hp = {}
+local ids_hptag = {}
+local ids_tag = {}
 
 local mod_storage = party.mod_storage
 local PARTY_SQUAD_NAME_LENGTH = party.PARTY_SQUAD_NAME_LENGTH
@@ -218,10 +218,10 @@ squad.leave = function(name, tag)
 
 	-- remove all huds for player-that-left
 	for i = 1,7 do
-		player:hud_remove(ids_bg[name.."_"..cparty.."_bg_"..csquad.."_"..i])
-		player:hud_remove(ids_hp[name.."_"..cparty.."_hp_"..csquad.."_"..i])
-		player:hud_remove(ids_hptag[name.."_"..cparty.."_hptag_"..csquad.."_"..i])
-		player:hud_remove(ids_tag[name.."_"..cparty.."_tag_"..csquad.."_"..i])
+		player:hud_remove(ids_bg[name.."_"..cparty.."_bg_"..csquad.."_"..i] or -1)
+		player:hud_remove(ids_hp[name.."_"..cparty.."_hp_"..csquad.."_"..i] or -1)
+		player:hud_remove(ids_hptag[name.."_"..cparty.."_hptag_"..csquad.."_"..i] or -1)
+		player:hud_remove(ids_tag[name.."_"..cparty.."_tag_"..csquad.."_"..i] or -1)
 	end
 
 	mod_storage:set_string(name.."_squad", nil)
