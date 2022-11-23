@@ -650,7 +650,6 @@ minetest.register_chatcommand("p", {
 				return
 			end
 
-			local cparty_l = mod_storage:get_string(name.."_leader")
 			if minetest.player_exists(param2) then
 
 				local target_party = mod_storage:get_string(param2.."_party")
@@ -694,7 +693,7 @@ minetest.register_chatcommand("p", {
 				elseif target_party == cparty then
 					local target_status = mod_storage:get_string(param2.."_leader")
 					if target_status == "" then
-						mod_storage:set_string(param2.."_leader", "true")
+						mod_storage:set_string(param2.."_leader", cparty)
 						mod_storage:set_string(name.."_leader", nil)
 						party.send_notice_all(name, param2.." has been promoted to a leader!")
 					end
